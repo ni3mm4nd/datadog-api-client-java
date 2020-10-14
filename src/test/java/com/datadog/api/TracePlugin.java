@@ -29,19 +29,25 @@ public class TracePlugin implements EventListener {
     private Span stepSpan;
 
     private void receiveTestCaseStarted(TestCaseStarted event) {
-        scenarioSpan = GlobalTracer.get().buildSpan("scenario").withTag(DDTags.ANALYTICS_SAMPLE_RATE, 1.0f)
-                .withTag(DDTags.RESOURCE_NAME, event.getTestCase().getName()).withTag(DDTags.SPAN_TYPE, "test").start();
-
+        Tracer tracer = GlobalTracer.get();
+        scenarioSpan = tracer.buildSpan("scenario").withTag(DDTags.ANALYTICS_SAMPLE_RATE, 1.0f)
+                .withTag(DDTags.RESOURCE_NAME, event.getTestCase().getName()).withTag(DDTags.SPAN_TYPE, "test")
+                .withTag("span.kind", "test").withTag("test.framework", "io.cucumber").withTag("test.type", "scenario")
+                .withTag("test.name", "io.cucumber").start();
         MutableSpan s = (MutableSpan) scenarioSpan;
         s.setResourceName(event.getTestCase().getName());
         s.setSpanType("test");
+        tracer.activateSpan(scenarioSpan);
     }
 
     private void receiveTestCaseFinished(TestCaseFinished event) {
         Result result = event.getResult();
+        MutableSpan s = (MutableSpan) scenarioSpan;
         if (!result.getStatus().isOk()) {
-            MutableSpan s = (MutableSpan) scenarioSpan;
             s.setError(true);
+            s.setTag("test.status", "fail");
+        } else {
+            s.setTag("test.status", "pass");
         }
         scenarioSpan.finish();
     }
@@ -51,12 +57,14 @@ public class TracePlugin implements EventListener {
             PickleStepTestStep ts = (PickleStepTestStep) event.getTestStep();
             Step step = ts.getStep();
             String name = step.getText();
-            stepSpan = GlobalTracer.get().buildSpan("step").withTag(DDTags.RESOURCE_NAME, name)
-                    .withTag(DDTags.SPAN_TYPE, step.getKeyword()).start();
-
+            Tracer tracer = GlobalTracer.get();
+            stepSpan = tracer.buildSpan("step").withTag(DDTags.RESOURCE_NAME, name)
+                    .withTag(DDTags.SPAN_TYPE, step.getKeyword()).withTag("span.kind", "step")
+                    .withTag("test.framework", "io.cucumber").withTag("test.name", name).start();
             MutableSpan ms = (MutableSpan) stepSpan;
             ms.setResourceName(name);
             ms.setSpanType(step.getKeyword());
+            tracer.activateSpan(scenarioSpan);
         }
     }
 
