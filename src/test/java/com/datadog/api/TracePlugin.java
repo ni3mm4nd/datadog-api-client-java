@@ -14,6 +14,7 @@ import io.cucumber.plugin.event.TestStepStarted;
 
 import datadog.trace.api.DDTags;
 import datadog.trace.api.interceptor.MutableSpan;
+import io.opentracing.Scope;
 import io.opentracing.Span;
 import io.opentracing.tag.Tags;
 import io.opentracing.Tracer;
@@ -26,7 +27,9 @@ public class TracePlugin implements EventListener {
     private String TRACING_TAG_ENDPOINT = "version";
 
     private Span scenarioSpan;
+    private Scope scenarioScope;
     private Span stepSpan;
+    private Scope stepScope;
 
     private void receiveTestCaseStarted(TestCaseStarted event) {
         Tracer tracer = GlobalTracer.get();
@@ -37,19 +40,26 @@ public class TracePlugin implements EventListener {
         MutableSpan s = (MutableSpan) scenarioSpan;
         s.setResourceName(event.getTestCase().getName());
         s.setSpanType("test");
-        tracer.activateSpan(scenarioSpan);
+        scenarioScope = tracer.activateSpan(scenarioSpan);
+        // scenarioScope.setAsyncPropagation(true);
     }
 
     private void receiveTestCaseFinished(TestCaseFinished event) {
-        Result result = event.getResult();
-        MutableSpan s = (MutableSpan) scenarioSpan;
-        if (!result.getStatus().isOk()) {
-            s.setError(true);
-            s.setTag("test.status", "fail");
-        } else {
-            s.setTag("test.status", "pass");
+        try {
+            Result result = event.getResult();
+            MutableSpan s = (MutableSpan) scenarioSpan;
+            if (!result.getStatus().isOk()) {
+                s.setError(true);
+                s.setTag("test.status", "fail");
+            } else {
+                s.setTag("test.status", "pass");
+            }
+        } finally {
+            scenarioScope.close();
+            scenarioScope = null;
+            scenarioSpan.finish();
+            scenarioSpan = null;
         }
-        scenarioSpan.finish();
     }
 
     private void receiveTestStepStarted(TestStepStarted event) {
@@ -58,25 +68,31 @@ public class TracePlugin implements EventListener {
             Step step = ts.getStep();
             String name = step.getText();
             Tracer tracer = GlobalTracer.get();
-            stepSpan = tracer.buildSpan("step").withTag(DDTags.RESOURCE_NAME, name)
+            stepSpan = tracer.buildSpan("step").asChildOf(scenarioSpan).withTag(DDTags.RESOURCE_NAME, name)
                     .withTag(DDTags.SPAN_TYPE, step.getKeyword()).withTag("span.kind", "step")
                     .withTag("test.framework", "io.cucumber").withTag("test.name", name).start();
             MutableSpan ms = (MutableSpan) stepSpan;
             ms.setResourceName(name);
             ms.setSpanType(step.getKeyword());
-            tracer.activateSpan(scenarioSpan);
+            stepScope = tracer.activateSpan(scenarioSpan);
+            // stepScope.setAsyncPropagation(true);
         }
     }
 
     private void receiveTestStepFinished(TestStepFinished event) {
         if (stepSpan != null) {
-            Result result = event.getResult();
-            if (!result.getStatus().isOk()) {
-                MutableSpan s = (MutableSpan) stepSpan;
-                s.setError(true);
+            try {
+                Result result = event.getResult();
+                if (!result.getStatus().isOk()) {
+                    MutableSpan s = (MutableSpan) stepSpan;
+                    s.setError(true);
+                }
+            } finally {
+                stepScope.close();
+                stepScope = null;
+                stepSpan.finish();
+                stepSpan = null;
             }
-            stepSpan.finish();
-            stepSpan = null;
         }
     }
 
