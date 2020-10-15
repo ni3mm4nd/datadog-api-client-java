@@ -5,10 +5,15 @@ import java.lang.reflect.Method;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Stream;
 import java.util.regex.Pattern;
+import java.util.stream.Stream;
+
+import javax.ws.rs.client.Client;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+
+import org.glassfish.jersey.client.ClientConfig;
+import org.glassfish.jersey.client.HttpUrlConnectorProvider;
 
 import io.cucumber.java.Scenario;
 
@@ -47,30 +52,48 @@ public class World {
 
     public void setupClient(String apiVersion)
             throws java.lang.reflect.InvocationTargetException, java.lang.IllegalAccessException,
-            java.lang.InstantiationException, java.lang.NoSuchMethodException, java.lang.ClassNotFoundException {
+            java.lang.InstantiationException, java.lang.NoSuchMethodException, java.lang.ClassNotFoundException,
+            java.lang.NoSuchFieldException {
         // import com.datadog.api.{{ apiVersion }}.client.ApiClient
         clientClass = Class.forName("com.datadog.api." + apiVersion + ".client.ApiClient");
         // client = new ApiClient()
         client = clientClass.getConstructor().newInstance();
 
         // client.setServerIndex(0);
+        clientClass.getMethod("setServerIndex", Integer.class).invoke(client, 0);
 
         // Set debugging based on env
-        // client.setDebugging("true".equals(System.getenv("DEBUG")));
+        // client.setDebugging("true".equals(System.getenv("DEBUG")))
+        clientClass.getMethod("setDebugging", boolean.class).invoke(client, "true".equals(System.getenv("DEBUG")));
 
-        // Set proxy to the mockServer for recording
-        /*
-         * if (!TestUtils.getRecordingMode().equals(RecordingMode.MODE_REPLAYING)) { if
-         * (!(TestUtils.isIbmJdk() ||
-         * TestUtils.getRecordingMode().equals(RecordingMode.MODE_IGNORE))) {
-         * ClientConfig config = (ClientConfig)
-         * client.getHttpClient().getConfiguration(); config.connectorProvider(new
-         * HttpUrlConnectorProvider().connectionFactory(new
-         * TestUtils.MockServerProxyConnectionFactory())); } } else { // Set base path
-         * to the mock server for replaying client.setBasePath("https://" +
-         * TestUtils.MOCKSERVER_HOST + ":" + TestUtils.MOCKSERVER_PORT);
-         * client.setServerIndex(null); }
-         */
+        // Set proxy to the "mockServer" for recording
+        if (!TestUtils.getRecordingMode().equals(RecordingMode.MODE_REPLAYING)) {
+            if (!(TestUtils.isIbmJdk() || TestUtils.getRecordingMode().equals(RecordingMode.MODE_IGNORE))) {
+                // ClientConfig config = (ClientConfig)
+                // client.getHttpClient().getConfiguration()
+                /*
+                 * Client httpClient = (Client)
+                 * clientClass.getMethod("getHttpClient").invoke(client); ClientConfig config =
+                 * (ClientConfig) httpClient.getConfiguration();
+                 *
+                 * config.connectorProvider(new HttpUrlConnectorProvider()
+                 * .connectionFactory(new TestUtils.MockServerProxyConnectionFactory()));
+                 */
+                clientClass.getMethod("setBasePath", String.class).invoke(client, RecorderPlugin.getUrl());
+                // client.setServerIndex(null)
+                // clientClass.getMethod("setServerIndex", Integer.class).invoke(client, null);
+                Field f = clientClass.getDeclaredField("serverIndex");
+                f.setAccessible(true);
+                f.set(client, null);
+            }
+        } else { // Set base path to the mock server for replaying
+            // client.setBasePath(...)
+            clientClass.getMethod("setBasePath", String.class).invoke(client, RecorderPlugin.getUrl());
+            // client.setServerIndex(null)
+            Field f = clientClass.getDeclaredField("serverIndex");
+            f.setAccessible(true);
+            f.set(client, null);
+        }
 
         // client.addDefaultHeader("JAVA-TEST-NAME", name.getMethodName());
     }
@@ -121,9 +144,9 @@ public class World {
         return undoClass.getMethod(actionName, apiClass, dataMethod.getReturnType());
     }
 
-    public void sendRequest() throws java.lang.ClassNotFoundException, java.lang.IllegalAccessException,
-            java.lang.NoSuchMethodException, java.lang.reflect.InvocationTargetException,
-            com.fasterxml.jackson.core.JsonProcessingException {
+    public void sendRequest()
+            throws java.lang.ClassNotFoundException, java.lang.IllegalAccessException, java.lang.NoSuchMethodException,
+            java.lang.reflect.InvocationTargetException, com.fasterxml.jackson.core.JsonProcessingException {
         Object request;
         if (requestBuilder.getParameterCount() > 0) {
             Object[] parameters = new Object[requestBuilder.getParameterCount()];

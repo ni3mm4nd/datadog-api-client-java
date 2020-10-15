@@ -28,6 +28,8 @@ public class ClientSteps {
 
     public ClientSteps(World world) {
         this.world = world;
+
+        System.out.println("ClientSteps.ClientSteps()");
     }
 
     @Before(order = 0)
@@ -41,13 +43,14 @@ public class ClientSteps {
         // TODO scenario.getSourceTagNames();
     }
 
-    @Before(order = 1)
+    @Before(order = 10)
     public void setupClient() throws java.lang.reflect.InvocationTargetException, java.lang.IllegalAccessException,
-            java.lang.InstantiationException, java.lang.NoSuchMethodException, java.lang.ClassNotFoundException {
+            java.lang.InstantiationException, java.lang.NoSuchMethodException, java.lang.ClassNotFoundException,
+            java.lang.NoSuchFieldException {
         world.setupClient(apiVersion);
     }
 
-    @Before(order = 2)
+    @Before(order = 20)
     public void setupContext() {
         String unique = world.getUniqueEntityName();
         world.context.put("unique", unique);

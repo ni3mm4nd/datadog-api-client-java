@@ -8,7 +8,7 @@ import io.cucumber.junit.Cucumber;
 import io.cucumber.junit.CucumberOptions;
 
 @RunWith(Cucumber.class)
-@CucumberOptions(plugin = { "pretty", "summary",
+@CucumberOptions(plugin = { "pretty", "summary", "com.datadog.api.RecorderPlugin",
         "com.datadog.api.TracePlugin" }, snippets = CAMELCASE, tags = "not @skip")
 public class ScenariosTest {
 }
