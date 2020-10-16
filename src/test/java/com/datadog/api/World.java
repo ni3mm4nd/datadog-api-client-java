@@ -77,9 +77,9 @@ public class World {
         // client.setDebugging("true".equals(System.getenv("DEBUG")))
         clientClass.getMethod("setDebugging", boolean.class).invoke(client, "true".equals(System.getenv("DEBUG")));
 
-        // Set proxy to the "mockServer" for recording
-        if (!TestUtils.getRecordingMode().equals(RecordingMode.MODE_IGNORE)) {
-            if (!(TestUtils.isIbmJdk() || TestUtils.getRecordingMode().equals(RecordingMode.MODE_IGNORE))) {
+        if (TestUtils.getRecordingMode().equals(RecordingMode.MODE_RECORDING)) {
+            // Set proxy to the "mockServer" for recording
+            if (!TestUtils.isIbmJdk()) {
                 // ClientConfig config = (ClientConfig)
                 // client.getHttpClient().getConfiguration()
                 /*
@@ -97,7 +97,8 @@ public class World {
                 f.setAccessible(true);
                 f.set(client, null);
             }
-        } else { // Set base path to the mock server for replaying
+        } else if (TestUtils.getRecordingMode().equals(RecordingMode.MODE_REPLAYING)) {
+            // Set base path to the mock server for replaying
             // client.setBasePath(...)
             clientClass.getMethod("setBasePath", String.class).invoke(client, RecorderSteps.getUrl());
             // client.setServerIndex(null)

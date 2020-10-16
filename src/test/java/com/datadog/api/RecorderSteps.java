@@ -27,8 +27,8 @@ public class RecorderSteps {
 
     protected static String cassettesDir = "src/test/resources/scenarios/cassettes";
 
-    public static String host = "localhost";
-    public static int port = 18080 + Integer.parseInt(System.getProperty("surefireForkNumber"));
+    public static final String host = "localhost";
+    public static final int port = 18080 + Integer.parseInt(System.getProperty("surefireForkNumber"));
 
     private WireMockServer server;
 
