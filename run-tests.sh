@@ -1,5 +1,11 @@
 #!/usr/bin/env bash
 set -e
+
+function finish {
+    rm -rf target/rerun.txt
+}
+trap finish EXIT
+
 echo "Ensuring all dependencies are present in LICENSE-3rdparty.csv ..."
 # -DoutputType=dot will make output look like:
 # [INFO] 	"org.glassfish.jersey.media:jersey-media-json-jackson:jar:2.27:compile" "org.glassfish.jersey.ext:jersey-entity-filtering:jar:2.27:compile" ;
@@ -42,5 +48,6 @@ if [ "$RERECORD_FAILED_TESTS" == "true" -a "$RESULT" -ne 0 ]; then
     python3 -m pip install "junitparser==1.4.1"
     python3 failed.py | RECORD=true bash
     RESULT=$?
+    RECORD=true 
 fi
 exit $RESULT
