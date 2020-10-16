@@ -37,7 +37,10 @@ public class UsersSteps {
 
         world.context.put("user", ur);
 
-        Undo.createUser(usersAPI, (Object) ur);
+        world.undo.add(() -> {
+            Undo.createUser(usersAPI, (Object) ur);
+            return null;
+        });
     }
 
     @Given("the \"user\" has a \"user_invitation\"")

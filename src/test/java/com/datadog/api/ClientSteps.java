@@ -2,16 +2,16 @@ package com.datadog.api;
 
 import static org.junit.Assert.*;
 
+import java.util.concurrent.Callable;
 import java.lang.reflect.Field;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.function.Function;
 import java.util.HashMap;
 import java.util.List;
+import java.util.function.Function;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import io.cucumber.java.After;
 import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
 import io.cucumber.java.en.Given;
@@ -48,6 +48,18 @@ public class ClientSteps {
         String unique = world.getUniqueEntityName();
         world.context.put("unique", unique);
         world.context.put("unique_lower", unique.toLowerCase());
+    }
+
+    @After
+    public void undo() {
+        for (Callable u : world.undo) {
+            try {
+                u.call();
+            } catch (Exception e) {
+                System.out.printf("failed undo: %s\n", e);
+            }
+        }
+
     }
 
     @Given("an instance of {string} API")

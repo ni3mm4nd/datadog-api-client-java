@@ -29,7 +29,10 @@ public class TeamsSteps {
 
         world.context.put("team", tr);
 
-        Undo.createTeam(teamsAPI, (Object) tr);
+        world.undo.add(() -> {
+            Undo.createTeam(teamsAPI, (Object) tr);
+            return null;
+        });
     }
 
 }

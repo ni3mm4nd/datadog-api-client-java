@@ -30,7 +30,10 @@ public class ServicesSteps {
 
         world.context.put("service", tr);
 
-        Undo.createService(servicesAPI, (Object) tr);
+        world.undo.add(() -> {
+            Undo.createService(servicesAPI, (Object) tr);
+            return null;
+        });
     }
 
 }

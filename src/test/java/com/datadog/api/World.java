@@ -8,6 +8,9 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
+import java.util.concurrent.Callable;
+import java.util.ArrayList;
+import java.util.List;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.github.tomakehurst.wiremock.WireMockServer;
@@ -40,11 +43,15 @@ public class World {
     Clock clock;
     OffsetDateTime now;
 
+    // Undo
+    public List<Callable<?>> undo;
+
     static String[] noUndo = { "add", "aggregateLogs", "delete", "disable", "get", "list", "remove", "sendInvitations",
             "update", };
 
     public World() {
         context = new HashMap<>();
+        undo = new ArrayList<>();
     }
 
     public String getVersion() {
@@ -175,8 +182,11 @@ public class World {
 
         if (undoMethod != null) {
             // TODO append to undo list
-            Method dataMethod = responseClass.getMethod("getData");
-            undoMethod.invoke(null, apiClass.cast(api), dataMethod.invoke(response));
+            undo.add(() -> {
+                Method dataMethod = responseClass.getMethod("getData");
+                undoMethod.invoke(null, apiClass.cast(api), dataMethod.invoke(response));
+                return null;
+            });
         }
     }
 

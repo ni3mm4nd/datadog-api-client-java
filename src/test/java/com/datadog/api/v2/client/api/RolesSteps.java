@@ -34,7 +34,10 @@ public class RolesSteps {
 
         world.context.put("role", rr);
 
-        Undo.createRole(rolesAPI, (Object) rr);
+        world.undo.add(() -> {
+            Undo.createRole(rolesAPI, (Object) rr);
+            return null;
+        });
     }
 
     @Given("there is a valid \"permission\" in the system")
