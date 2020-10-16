@@ -1,0 +1,38 @@
+{
+  "id" : "726218e5-b21b-4f92-a31b-a8309329e2f6",
+  "name" : "api_v2_logs_events_search",
+  "request" : {
+    "url" : "/api/v2/logs/events/search",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "equalToJson" : "{\"filter\":{\"from\":\"2020-09-17T11:48:36+01:00\",\"indexes\":[\"main\"],\"query\":\"datadog-agent\",\"to\":\"2020-09-17T12:48:36+01:00\"},\"page\":{\"limit\":5},\"sort\":\"timestamp\"}",
+      "ignoreArrayOrder" : true,
+      "ignoreExtraElements" : true
+    } ]
+  },
+  "response" : {
+    "status" : 200,
+    "body" : "{\"data\":[]}",
+    "headers" : {
+      "Date" : "Fri, 16 Oct 2020 10:29:38 GMT",
+      "Content-Type" : "application/json",
+      "Pragma" : "no-cache",
+      "Cache-Control" : "no-cache",
+      "Set-Cookie" : "DD-PSHARD=233; Max-Age=604800; Path=/; expires=Fri, 23-Oct-2020 10:29:37 GMT; secure; HttpOnly",
+      "X-DD-VERSION" : "35.3204676",
+      "X-RateLimit-Limit" : "300",
+      "X-RateLimit-Period" : "3600",
+      "X-RateLimit-Reset" : "1823",
+      "X-RateLimit-Remaining" : "294",
+      "X-DD-Debug" : "0xx9Vajt2z9Bjd3zEZxSq+HXBSiVDpVx3zcehHaUF6Rbof5oICp4xtQ5KAyASYVV",
+      "DD-POOL" : "dogweb",
+      "Content-Security-Policy" : "frame-ancestors 'self'; report-uri https://api.datadoghq.com/csp-report",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "X-Content-Type-Options" : "nosniff",
+      "Strict-Transport-Security" : "max-age=15724800;"
+    }
+  },
+  "uuid" : "726218e5-b21b-4f92-a31b-a8309329e2f6",
+  "persistent" : true,
+  "insertionIndex" : 2
+}

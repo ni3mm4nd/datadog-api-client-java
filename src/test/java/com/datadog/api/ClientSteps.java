@@ -16,7 +16,6 @@ import io.cucumber.java.Before;
 import io.cucumber.java.Scenario;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.Then;
-import io.cucumber.java.en.When;
 
 public class ClientSteps {
     protected static final String TEST_API_KEY_NAME = "DD_TEST_CLIENT_API_KEY";
@@ -28,18 +27,12 @@ public class ClientSteps {
 
     public ClientSteps(World world) {
         this.world = world;
-
-        System.out.println("ClientSteps.ClientSteps()");
     }
 
     @Before(order = 0)
     public void setupVersion(Scenario scenario) throws java.io.IOException {
         world.scenario = scenario;
-
-        String[] parts = scenario.getUri().toString().split("/");
-        // get version
-        // src/test/resources/com/datadog/api/>>>v2<<</client/api/teams.feature
-        apiVersion = parts[parts.length - 4];
+        apiVersion = world.getVersion();
         // TODO scenario.getSourceTagNames();
     }
 
@@ -120,12 +113,6 @@ public class ClientSteps {
         world.requestParams.put("body", world.fromJSON(field.getType(), templated(world.context, data)));
     }
 
-    @When("the request is sent")
-    public void theRequestIsSent() throws java.lang.ClassNotFoundException, java.lang.IllegalAccessException,
-            java.lang.NoSuchMethodException, java.lang.reflect.InvocationTargetException,
-            com.fasterxml.jackson.core.JsonProcessingException, java.lang.InstantiationException {
-        world.sendRequest();
-    }
 
     @Then("the response status is {int} {}")
     public void theResponseStatusIsOK(Integer statusCode, String _)

@@ -2,18 +2,15 @@ package com.datadog.api;
 
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
+import java.time.Clock;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
-import javax.ws.rs.client.Client;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
-
-import org.glassfish.jersey.client.ClientConfig;
-import org.glassfish.jersey.client.HttpUrlConnectorProvider;
+import com.github.tomakehurst.wiremock.WireMockServer;
 
 import io.cucumber.java.Scenario;
 
@@ -40,6 +37,7 @@ public class World {
 
     // Name control
     Scenario scenario;
+    Clock clock;
     OffsetDateTime now;
 
     static String[] noUndo = { "add", "aggregateLogs", "delete", "disable", "get", "list", "remove", "sendInvitations",
@@ -47,7 +45,13 @@ public class World {
 
     public World() {
         context = new HashMap<>();
-        now = OffsetDateTime.now();
+    }
+
+    public String getVersion() {
+        String[] parts = scenario.getUri().toString().split("/");
+        // get version
+        // src/test/resources/com/datadog/api/>>>v2<<</client/api/teams.feature
+        return parts[parts.length - 4];
     }
 
     public void setupClient(String apiVersion)
@@ -67,7 +71,7 @@ public class World {
         clientClass.getMethod("setDebugging", boolean.class).invoke(client, "true".equals(System.getenv("DEBUG")));
 
         // Set proxy to the "mockServer" for recording
-        if (!TestUtils.getRecordingMode().equals(RecordingMode.MODE_REPLAYING)) {
+        if (!TestUtils.getRecordingMode().equals(RecordingMode.MODE_IGNORE)) {
             if (!(TestUtils.isIbmJdk() || TestUtils.getRecordingMode().equals(RecordingMode.MODE_IGNORE))) {
                 // ClientConfig config = (ClientConfig)
                 // client.getHttpClient().getConfiguration()
@@ -79,7 +83,7 @@ public class World {
                  * config.connectorProvider(new HttpUrlConnectorProvider()
                  * .connectionFactory(new TestUtils.MockServerProxyConnectionFactory()));
                  */
-                clientClass.getMethod("setBasePath", String.class).invoke(client, RecorderPlugin.getUrl());
+                clientClass.getMethod("setBasePath", String.class).invoke(client, RecorderSteps.getUrl());
                 // client.setServerIndex(null)
                 // clientClass.getMethod("setServerIndex", Integer.class).invoke(client, null);
                 Field f = clientClass.getDeclaredField("serverIndex");
@@ -88,7 +92,7 @@ public class World {
             }
         } else { // Set base path to the mock server for replaying
             // client.setBasePath(...)
-            clientClass.getMethod("setBasePath", String.class).invoke(client, RecorderPlugin.getUrl());
+            clientClass.getMethod("setBasePath", String.class).invoke(client, RecorderSteps.getUrl());
             // client.setServerIndex(null)
             Field f = clientClass.getDeclaredField("serverIndex");
             f.setAccessible(true);
@@ -186,12 +190,16 @@ public class World {
         return mapper.readValue(data, clazz);
     }
 
+    public String getName() {
+        return Pattern.compile("[^A-Za-z0-9]+").matcher(scenario.getName()).replaceAll("_");
+    }
+
     public String getUniqueEntityName() {
         // NOTE: some endpoints have limits on certain fields (e.g. Roles V2 names can
         // only be 55 chars long),
         // so we need to keep this short
-        String name = Pattern.compile("[^A-Za-z0-9]+").matcher(scenario.getName()).replaceAll("_");
-        String result = String.format("java-%s-%d", name.substring(0, 20), now.toEpochSecond());
+
+        String result = String.format("java-%s-%d", getName().substring(0, 20), now.toEpochSecond());
         // In case this is used in URL, make sure we replace potential slash
         return result;
     }

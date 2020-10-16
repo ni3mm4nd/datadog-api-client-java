@@ -1,0 +1,34 @@
+{
+  "id" : "288ea528-de82-4786-8669-cb7759f9ff88",
+  "name" : "api_v2_user_invitations",
+  "request" : {
+    "url" : "/api/v2/user_invitations",
+    "method" : "POST",
+    "bodyPatterns" : [ {
+      "equalToJson" : "{\"data\":[{\"relationships\":{\"user\":{\"data\":{\"id\":\"8a9f9388-0f9a-11eb-bac3-33aade0e5f8e\",\"type\":\"users\"}}},\"type\":\"user_invitations\"}]}",
+      "ignoreArrayOrder" : true,
+      "ignoreExtraElements" : true
+    } ]
+  },
+  "response" : {
+    "status" : 201,
+    "body" : "{\"data\":[{\"type\":\"user_invitations\",\"id\":\"8ae4c5a2-0f9a-11eb-bac3-7b0020b73afc\",\"attributes\":{\"uuid\":\"8ae4c5a2-0f9a-11eb-bac3-7b0020b73afc\",\"login_method\":null,\"invite_type\":\"openid_invite\",\"created_at\":\"2020-10-16T10:29:59.455628+00:00\",\"expires_at\":\"2020-10-18T10:29:59.288847+00:00\"},\"relationships\":{\"user\":{\"data\":{\"type\":\"users\",\"id\":\"8a9f9388-0f9a-11eb-bac3-33aade0e5f8e\"}}}}]}",
+    "headers" : {
+      "Date" : "Fri, 16 Oct 2020 10:29:59 GMT",
+      "Content-Type" : "application/json",
+      "Pragma" : "no-cache",
+      "Cache-Control" : "no-cache",
+      "Set-Cookie" : "DD-PSHARD=233; Max-Age=604800; Path=/; expires=Fri, 23-Oct-2020 10:29:59 GMT; secure; HttpOnly",
+      "X-DD-VERSION" : "35.3204676",
+      "X-DD-Debug" : "yh6YON+7jbeDMg7CO+AYyoesqWeq0Iw5xzcOjFKKupoYHnh4eyLWds2GSgfB/+lP",
+      "DD-POOL" : "dogweb",
+      "Content-Security-Policy" : "frame-ancestors 'self'; report-uri https://api.datadoghq.com/csp-report",
+      "X-Frame-Options" : "SAMEORIGIN",
+      "X-Content-Type-Options" : "nosniff",
+      "Strict-Transport-Security" : "max-age=15724800;"
+    }
+  },
+  "uuid" : "288ea528-de82-4786-8669-cb7759f9ff88",
+  "persistent" : true,
+  "insertionIndex" : 5
+}
