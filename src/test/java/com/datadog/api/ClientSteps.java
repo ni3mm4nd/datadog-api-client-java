@@ -73,7 +73,6 @@ public class ClientSteps {
     public void operationEnabled(String operationId)
             throws java.lang.reflect.InvocationTargetException, java.lang.IllegalAccessException,
             java.lang.InstantiationException, java.lang.NoSuchMethodException, java.lang.ClassNotFoundException {
-        // client.setUnstableOperationEnabled(operationId, true);
         world.setUnstableOperationEnabled(toMethodName(operationId));
     }
 
